@@ -2,19 +2,18 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
+// use std::vec::*;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Node<T> {
     val: T,
     next: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Node<T> {
+impl<T: std::cmp::PartialOrd + Clone> Node<T> {
     fn new(t: T) -> Node<T> {
         Node {
             val: t,
@@ -29,13 +28,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T: std::cmp::PartialOrd + Clone> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T: std::cmp::PartialOrd + Clone> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,22 +68,47 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-	//TODO
-		//TODO
-		//TODO
-		//TODO
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self {
+        let mut merged_list = Self::new();
+        let (mut a_ptr, mut b_ptr) = (list_a.start, list_b.start);
+
+        while a_ptr.is_some() && b_ptr.is_some() {
+            let a_val = unsafe { a_ptr.unwrap().as_ref().val.clone() };
+            let b_val = unsafe { b_ptr.unwrap().as_ref().val.clone() };
+
+            if a_val < b_val {
+                // Move the smallest value from list_a to merged_list
+                if let Some(a) = a_ptr {
+                    merged_list.add(unsafe { a.as_ref().val.clone() });
+                    a_ptr = unsafe { a.as_ref().next };
+                }
+            } else {
+                // Move the smallest value from list_b to merged_list
+                if let Some(b) = b_ptr {
+                    merged_list.add(unsafe { b.as_ref().val.clone() });
+                    b_ptr = unsafe { b.as_ref().next };
+                }
+            }
         }
-	}
+
+        // Add remaining elements from list_a, if any
+        while let Some(a) = a_ptr {
+            merged_list.add(unsafe { a.as_ref().val.clone() });
+            a_ptr = unsafe { a.as_ref().next };
+        }
+
+        // Add remaining elements from list_b, if any
+        while let Some(b) = b_ptr {
+            merged_list.add(unsafe { b.as_ref().val.clone() });
+            b_ptr = unsafe { b.as_ref().next };
+        }
+
+        merged_list
+    }
+
 }
 
-impl<T> Display for LinkedList<T>
+impl<T: std::cmp::PartialOrd + Clone> Display for LinkedList<T>
 where
     T: Display,
 {
@@ -96,7 +120,7 @@ where
     }
 }
 
-impl<T> Display for Node<T>
+impl<T: std::cmp::PartialOrd + Clone> Display for Node<T>
 where
     T: Display,
 {
